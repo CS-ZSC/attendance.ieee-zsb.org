@@ -14,6 +14,16 @@ pnpm dev
 bun dev
 ```
 
+#### TO insert data into the database, run:
+
+```bash
+# Step 1: Extract from Excel → data.json
+python3 scripts/extract.py "Members Data - Apps.xlsx"
+    
+# Step 2: Seed data.json → MongoDB
+npm run seed
+```
+
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
