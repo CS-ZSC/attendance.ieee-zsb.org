@@ -29,6 +29,12 @@ def parse_national_id(val) -> str:
     return str(val).strip()
 
 
+def split_teams(raw: str) -> list[str]:
+    """Split 'CS (Computer Society), RAS (Robotics & Automation Society)' into individual teams."""
+    import re
+    return [t.strip() for t in re.split(r",\s*(?=[A-Z])", raw) if t.strip()]
+
+
 def extract_sheet(ws, name_col: str, team_col: str) -> list[dict]:
     headers = [cell.value for cell in next(ws.iter_rows(min_row=1, max_row=1))]
     rows = []
@@ -38,13 +44,14 @@ def extract_sheet(ws, name_col: str, team_col: str) -> list[dict]:
         email = str(data.get("Email Address") or "").strip()
         if not name or not email:
             continue
+        raw_team = str(data.get(team_col) or "").strip()
         rows.append({
             "name": name,
             "email": email,
             "phone": str(data.get("Phone Number") or "").strip(),
             "national_id": parse_national_id(data.get("National ID Number")),
             "position": str(data.get("Current Position") or "").strip(),
-            "team": str(data.get(team_col) or "").strip(),
+            "teams": split_teams(raw_team) if raw_team else [],
         })
     return rows
 
@@ -90,7 +97,7 @@ def main():
         print(f"Extracted {len(rows)} rows from '{sheet_name}'")
 
     unique = deduplicate(members)
-    teams = sorted(set(m["team"] for m in unique if m["team"]))
+    teams = sorted(set(t for m in unique for t in m["teams"]))
 
     output = {"teams": teams, "members": unique}
     out_path = Path(__file__).parent / "data.json"
