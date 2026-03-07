@@ -9,7 +9,7 @@ import { User } from "../models/User";
 const dataPath = join(__dirname, "data.json");
 const { teams: teamNames, members } = JSON.parse(readFileSync(dataPath, "utf-8")) as {
     teams: string[];
-    members: { name: string; email: string; phone: string; national_id: string; position: string; team: string }[];
+    members: { name: string; email: string; phone: string; national_id: string; position: string; teams: string[] }[];
 };
 
 async function seed() {
@@ -37,7 +37,7 @@ async function seed() {
         phone: m.phone,
         national_id: m.national_id,
         position: m.position,
-        teamId: teamMap.get(m.team) ?? null,
+        teams: m.teams.map((t) => teamMap.get(t)).filter(Boolean),
     }));
 
     await User.insertMany(docs);
