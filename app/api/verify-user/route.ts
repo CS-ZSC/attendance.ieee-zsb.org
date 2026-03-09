@@ -2,8 +2,20 @@ import { NextResponse } from "next/server";
 // import { db } from "@/lib/db"; // database connection
 
 const users = [
-  { id: 1, email: "norhan@test.com", national_id: "123456", name: "Norhan" },
-  { id: 2, email: "ali@test.com", national_id: "654321", name: "Ali" },
+  {
+    id: "1",
+    email: "norhan@test.com",
+    national_id: "123456",
+    name: "Norhan",
+    teams: ["T&T"],
+  },
+  {
+    id: "2",
+    email: "ali@test.com",
+    national_id: "654321",
+    name: "Ali",
+    teams: ["Media"],
+  },
 ];
 
 export async function POST(req: Request) {
@@ -30,5 +42,6 @@ export async function POST(req: Request) {
     id: user.id,
     email: user.email,
     name: user.name,
+    teams: user.teams,
   });
 }

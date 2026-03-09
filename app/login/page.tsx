@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
@@ -26,13 +26,22 @@ export default function LoginPage() {
     if (result?.error) {
       setError("Invalid email or national ID");
     } else {
-      router.push("/dashboard");
+      const session = await getSession();
+      const teams = session?.user?.teams ?? [];
+
+      if (teams.includes("T&T")) {
+        router.push("/sessions/talent-and-tech");
+      } else if (teams.length > 0) {
+        router.push(`/sessions/${teams[0].toLowerCase()}`);
+      } else {
+        router.push("/");
+      }
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#00101A]">
-      <div className="bg-[#002235CC] rounded-2xl p-10 m-10 w-full max-w-md shadow-2xl">
+    <div className="min-h-screen flex items-center justify-center ">
+      <div className="bg-brand-card rounded-2xl p-10 m-10 w-full max-w-md shadow-2xl">
         <h2 className="text-white text-xl font-normal text-center mb-7 tracking-wide">
           login
         </h2>
@@ -44,7 +53,7 @@ export default function LoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="bg-[#0286C833] border border-[#005481] rounded-lg px-4 py-3 text-[#a0b8cc] text-sm outline-none focus:border-[#4a9edd] transition-colors w-full"
+            className="bg-brand-success border border-brand-dark rounded-lg px-4 py-3 text-brand-muted text-sm outline-none focus:border-brand-accent transition-colors w-full"
           />
 
           <input
@@ -53,7 +62,7 @@ export default function LoginPage() {
             value={nationalId}
             onChange={(e) => setNationalId(e.target.value)}
             required
-            className="bg-[#0286C833] border border-[#005481] rounded-lg px-4 py-3 text-[#a0b8cc] text-sm outline-none focus:border-[#4a9edd] transition-colors w-full"
+            className="bg-brand-success border border-brand-dark rounded-lg px-4 py-3 text-brand-muted text-sm outline-none focus:border-brand-accent transition-colors w-full"
           />
 
           {error && <p className="text-red-400 text-xs text-center">{error}</p>}
@@ -61,7 +70,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="bg-[#006699] text-white rounded-lg py-3 text-sm font-semibold mt-1 tracking-wide hover:bg-[#1a5fa0] transition-colors disabled:opacity-60 cursor-pointer"
+            className="bg-brand-primary text-white rounded-lg py-3 text-sm font-semibold mt-1 tracking-wide hover:bg-brand-primary-hover transition-colors disabled:opacity-60 cursor-pointer"
           >
             {loading ? "..." : "Login"}
           </button>
