@@ -1,5 +1,7 @@
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { connectDB } from "@/lib/db";
+import { User } from "@/models/User";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -10,31 +12,43 @@ export const authOptions: NextAuthOptions = {
         nationalId: { label: "National ID", type: "text" },
       },
       async authorize(credentials) {
-        const response = await fetch(
-          `${process.env.NEXTAUTH_URL}/api/verify-user`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email: credentials?.email,
-              nationalId: credentials?.nationalId,
-            }),
-          },
-        );
+        try {
+          await connectDB();
+          const user = await User.findOne({
+            email: credentials?.email,
+            national_id: credentials?.nationalId,
+          }).lean();
 
-        const user = await response.json();
-        if (response.ok && user) return user;
-        return null;
+          if (!user) {
+            return null;
+          }
+
+          return {
+            id: user._id.toString(),
+            name: user.name,
+            email: user.email,
+            teams: (user.teams || []).map((team: unknown) => String(team)),
+          };
+        } catch (error) {
+          console.error("Authorization error:", error);
+          return null;
+        }
       },
     }),
   ],
   callbacks: {
     jwt({ token, user }) {
-      if (user) token.id = user.id;
+      if (user) {
+        token.id = user.id;
+        token.teams = user.teams;
+      }
       return token;
     },
     session({ session, token }) {
-      if (session.user) (session.user as { id?: string }).id = token.id as string;
+      if (session.user) {
+        session.user.id = token.id;
+        session.user.teams = token.teams ?? [];
+      }
       return session;
     },
   },
