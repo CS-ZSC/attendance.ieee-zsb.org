@@ -7,12 +7,14 @@ declare module "next-auth" {
       name?: string | null;
       email?: string | null;
       teams: string[];
+      managedTracks: string[];
     };
   }
 
   interface User {
     id: string;
     teams: string[];
+    managedTracks: string[];
   }
 }
 
@@ -20,5 +22,6 @@ declare module "next-auth/jwt" {
   interface JWT {
     id: string;
     teams: string[];
+    managedTracks: string[];
   }
 }

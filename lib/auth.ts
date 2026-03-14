@@ -2,6 +2,7 @@ import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
+import { Team } from "@/models/Team";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -14,10 +15,14 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         try {
           await connectDB();
+          Team; // Ensure Team model is registered
           const user = await User.findOne({
             email: credentials?.email,
             national_id: credentials?.nationalId,
-          }).lean();
+          })
+            .populate("teams", "name")
+            .populate("managedTracks", "name")
+            .lean();
 
           if (!user) {
             return null;
@@ -27,7 +32,8 @@ export const authOptions: NextAuthOptions = {
             id: user._id.toString(),
             name: user.name,
             email: user.email,
-            teams: (user.teams || []).map((team: unknown) => String(team)),
+            teams: (user.teams || []).map((team: any) => team?.name || String(team)),
+            managedTracks: (user.managedTracks || []).map((m: any) => m?.name || String(m)),
           };
         } catch (error) {
           console.error("Authorization error:", error);
@@ -37,10 +43,11 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    jwt({ token, user }) {
+    jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
         token.teams = user.teams;
+        token.managedTracks = user.managedTracks;
       }
       return token;
     },
@@ -48,6 +55,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id;
         session.user.teams = token.teams ?? [];
+        session.user.managedTracks = token.managedTracks ?? [];
       }
       return session;
     },
