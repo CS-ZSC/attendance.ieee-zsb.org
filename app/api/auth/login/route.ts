@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { encode } from "next-auth/jwt";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
+import { Team } from "@/models/Team";
 
 // Must match the cookie name NextAuth assigns so getServerSession can decode it
 const COOKIE_NAME = process.env.NEXTAUTH_URL?.startsWith("https://")
@@ -22,10 +23,15 @@ export async function POST(req: Request) {
 
   await connectDB();
 
+  Team;
+
   const user = await User.findOne({
     email: body.email,
     national_id: body.nationalId,
-  }).lean();
+  })
+    .populate("teams", "name")
+    .populate("managedTracks", "name")
+    .lean();
 
   if (!user) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
@@ -35,7 +41,8 @@ export async function POST(req: Request) {
     id: user._id.toString(),
     name: user.name,
     email: user.email,
-    teams: (user.teams ?? []).map((t: unknown) => String(t)),
+    teams: (user.teams ?? []).map((t: any) => t?.name || String(t)),
+    managedTracks: (user.managedTracks ?? []).map((m: any) => m?.name || String(m)),
   };
 
   // Encode a NextAuth-compatible JWT.
@@ -48,6 +55,7 @@ export async function POST(req: Request) {
       name: userData.name,
       email: userData.email,
       teams: userData.teams,
+      managedTracks: userData.managedTracks,
     },
     secret: process.env.NEXTAUTH_SECRET!,
     maxAge: MAX_AGE,
