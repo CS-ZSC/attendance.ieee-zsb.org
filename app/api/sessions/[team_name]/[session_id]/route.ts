@@ -7,14 +7,23 @@ import { User } from "@/models/User";
 import { Attendance } from "@/models/Attendance";
 import { inTeam, requireAuthenticatedUser } from "@/lib/guard";
 
+const slugToTeamName: Record<string, string> = {
+  ambassadors: "Ambassadors",
+  "business-development": "Business Development (BD)",
+  cs: "CS (Computer Society)",
+  multimedia: "Multimedia",
+  operations: "Operations",
+  pes: "PES (Power & Energy Society)",
+  ras: "RAS (Robotics & Automation Society)",
+  "talent-and-tech": "Talent & Tech (T&T)",
+  wie: "WIE (Women in Engineering)",
+};
+
 type Params = { params: Promise<{ team_name: string; session_id: string }> };
 
-// GET /api/sessions/[team_name]/[session_id] — session details + attendance status (authenticated users only)
 export async function GET(req: Request, { params }: Params) {
   const auth = await requireAuthenticatedUser(req);
-  if (auth instanceof Response) {
-    return auth;
-  }
+  if (auth instanceof Response) return auth;
 
   const { team_name, session_id } = await params;
 
@@ -24,24 +33,33 @@ export async function GET(req: Request, { params }: Params) {
 
   await connectDB();
 
-  const name = decodeURIComponent(team_name).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const team = await Team.findOne({ name: new RegExp(`^${name}$`, "i") });
-  if (!team) return NextResponse.json({ error: "Team not found" }, { status: 404 });
+  const realName = slugToTeamName[team_name];
+  if (!realName)
+    return NextResponse.json({ error: "Team not found" }, { status: 404 });
 
-  if (!inTeam(auth, team._id.toString())) {
+  const team = await Team.findOne({ name: realName });
+  if (!team)
+    return NextResponse.json({ error: "Team not found" }, { status: 404 });
+
+  if (!inTeam(auth, team.name)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const session = await Session.findOne({ _id: session_id, team_id: team._id }).lean();
-  if (!session) return NextResponse.json({ error: "Session not found" }, { status: 404 });
+  const session = await Session.findOne({
+    _id: session_id,
+    team_id: team._id,
+  }).lean();
+  if (!session)
+    return NextResponse.json({ error: "Session not found" }, { status: 404 });
 
-  // All members of the team + their attendance for this session
   const [members, records] = await Promise.all([
     User.find({ teams: team._id }, "name email").lean(),
     Attendance.find({ session_id: session._id }).lean(),
   ]);
 
-  const attendedSet = new Set(records.filter((r) => r.attended).map((r) => r.user_id.toString()));
+  const attendedSet = new Set(
+    records.filter((r) => r.attended).map((r) => r.user_id.toString()),
+  );
 
   return NextResponse.json({
     session: {
@@ -49,6 +67,7 @@ export async function GET(req: Request, { params }: Params) {
       title: session.title,
       team: team.name,
       qr_token: session.qr_token,
+      created_at: new Date(session.created_at).toLocaleDateString("en-CA"),
     },
     users: members.map((u) => ({
       name: u.name,

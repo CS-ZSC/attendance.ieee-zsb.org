@@ -1,11 +1,5 @@
 "use client";
-
-type Member = {
-  id: string;
-  name: string;
-  email: string;
-  attended: boolean;
-};
+import { Member } from "@/types/sessions";
 
 type Props = {
   members: Member[];
@@ -40,8 +34,8 @@ export default function AttendanceTable({ members }: Props) {
         <tbody>
           {members.map((member, i) => (
             <tr
-              key={member.id}
-              className={`border-b  border-brand-dark last:border-0 ${i % 2 === 0 ? "bg-[#0d1d2c]" : ""}`}
+              key={member.email}
+              className={`border-b border-brand-dark last:border-0 ${i % 2 === 0 ? "bg-[#0d1d2c]" : ""}`}
             >
               <td className="text-white text-sm px-6 py-4">{member.name}</td>
               <td className="text-brand-subtext text-sm px-6 py-4">

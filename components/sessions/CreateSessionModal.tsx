@@ -1,41 +1,35 @@
 "use client";
 import { useState } from "react";
+import { Session } from "@/types/sessions";
 
 type Props = {
   teamName: string;
+  managedTracks: string[];
   onClose: () => void;
-  onCreated: (session: {
-    id: string;
-    title: string;
-    created_at: string;
-  }) => void;
+  onCreated: (session: Session) => void;
 };
 
 export default function CreateSessionModal({
   teamName,
+  managedTracks,
   onClose,
   onCreated,
 }: Props) {
   const [title, setTitle] = useState("");
+  const [track, setTrack] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleCreate = async () => {
     if (!title.trim()) return;
     setLoading(true);
 
-    // TODO: replace fake data with real API call
-    // const res = await fetch(`/api/sessions/${teamName}`, {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify({ title }),
-    // });
-    // const newSession = await res.json();
-
-    const newSession = {
-      id: String(Date.now()),
-      title,
-      created_at: new Date().toISOString(),
-    };
+    const res = await fetch(`/api/sessions/${teamName}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ title: title.trim() }),
+    });
+    const newSession = await res.json();
 
     setLoading(false);
     onCreated(newSession);
@@ -55,6 +49,21 @@ export default function CreateSessionModal({
           onChange={(e) => setTitle(e.target.value)}
           className="bg-brand-success border border-brand-dark rounded-lg px-4 py-3 text-brand-muted text-sm outline-none focus:border-brand-accent transition-colors w-full mb-4"
         />
+
+        {managedTracks.length > 0 && (
+          <select
+            value={track}
+            onChange={(e) => setTrack(e.target.value)}
+            className="bg-brand-success border border-brand-dark rounded-lg px-4 py-3 text-brand-muted text-sm outline-none focus:border-brand-accent transition-colors w-full mb-4"
+          >
+            <option value="">Select track</option>
+            {managedTracks.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+        )}
 
         <div className="flex gap-3">
           <button

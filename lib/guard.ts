@@ -34,6 +34,6 @@ export async function requireAuthenticatedUser(
   };
 }
 
-export function inTeam(user: AppUser, teamId: string) {
-  return user.teams.includes(teamId);
+export function inTeam(user: AppUser, teamName: string) {
+  return user.teams.includes(teamName);
 }
