@@ -1,7 +1,18 @@
 "use client";
 import { useState } from "react";
-import { signIn, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+
+const teamSlugs: Record<string, string> = {
+  Ambassadors: "ambassadors",
+  "Business Development (BD)": "business-development",
+  "CS (Computer Society)": "cs",
+  Multimedia: "multimedia",
+  Operations: "operations",
+  "PES (Power & Energy Society)": "pes",
+  "RAS (Robotics & Automation Society)": "ras",
+  "Talent & Tech (T&T)": "talent-and-tech",
+  "WIE (Women in Engineering)": "wie",
+};
 
 export default function LoginPage() {
   const [email, setEmail] = useState<string>("");
@@ -15,24 +26,24 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
 
-    const result = await signIn("credentials", {
-      email,
-      nationalId,
-      redirect: false,
+    const result = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, nationalId }),
     });
 
+    const data = await result.json();
     setLoading(false);
 
-    if (result?.error) {
+    if (!result.ok) {
       setError("Invalid email or national ID");
     } else {
-      const session = await getSession();
-      const teams = session?.user?.teams ?? [];
+      const teams: string[] = data.user.teams ?? [];
+      const firstTeam = teams[0];
+      const slug = teamSlugs[firstTeam];
 
-      if (teams.includes("T&T")) {
-        router.push("/sessions/talent-and-tech");
-      } else if (teams.length > 0) {
-        router.push(`/sessions/${teams[0].toLowerCase()}`);
+      if (slug) {
+        router.push(`/sessions/${slug}`);
       } else {
         router.push("/");
       }

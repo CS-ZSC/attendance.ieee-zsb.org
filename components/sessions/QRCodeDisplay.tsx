@@ -7,8 +7,7 @@ type Props = {
 };
 
 export default function QRCodeDisplay({ sessionId, qrToken }: Props) {
-  const qrValue = `/scan/${sessionId}?token=${qrToken}`;
-
+  const qrValue = `https://attendance-iee-zsb.netlify.app/api/attendance/scan/${sessionId}?token=${qrToken}`;
   return (
     <div className="bg-brand-card border border-brand-dark rounded-2xl p-8 mb-6 flex flex-col items-center">
       <p className="text-brand-subtext text-sm uppercase tracking-widest mb-6">

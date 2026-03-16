@@ -1,10 +1,5 @@
 "use client";
-
-type Session = {
-  id: string;
-  title: string;
-  created_at: string;
-};
+import { Session } from "@/types/sessions";
 
 type Props = {
   session: Session;
