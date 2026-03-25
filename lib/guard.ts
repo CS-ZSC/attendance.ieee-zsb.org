@@ -7,6 +7,7 @@ export type AppUser = {
   name: string;
   email: string;
   teams: string[];
+  managedTeams: string[];
 };
 
 const COOKIE_NAME = process.env.NEXTAUTH_URL?.startsWith("https://")
@@ -31,6 +32,7 @@ export async function requireAuthenticatedUser(
     name: (token.name as string) ?? "",
     email: (token.email as string) ?? "",
     teams: (token.teams as string[]) ?? [],
+    managedTeams: (token.managedTeams as string[]) ?? [],
   };
 }
 

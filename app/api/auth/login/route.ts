@@ -36,6 +36,7 @@ export async function POST(req: Request) {
     name: user.name,
     email: user.email,
     teams: (user.teams ?? []).map((t: unknown) => String(t)),
+    managedTeams: (user.managedTeams ?? []).map((t: unknown) => String(t)),
   };
 
   // Encode a NextAuth-compatible JWT.
@@ -48,6 +49,7 @@ export async function POST(req: Request) {
       name: userData.name,
       email: userData.email,
       teams: userData.teams,
+      managedTeams: userData.managedTeams,
     },
     secret: process.env.NEXTAUTH_SECRET!,
     maxAge: MAX_AGE,

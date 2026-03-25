@@ -35,9 +35,9 @@ export async function GET(req: Request, { params }: Params) {
   const session = await Session.findOne({ _id: session_id, team_id: team._id }).lean();
   if (!session) return NextResponse.json({ error: "Session not found" }, { status: 404 });
 
-  // All members of the team + their attendance for this session
+  // All members of the team + their attendance for this session (excluding Board and IB)
   const [members, records] = await Promise.all([
-    User.find({ teams: team._id }, "name email").lean(),
+    User.find({ teams: team._id, position: { $nin: ["Board", "IB"] } }, "name email").lean(),
     Attendance.find({ session_id: session._id }).lean(),
   ]);
 

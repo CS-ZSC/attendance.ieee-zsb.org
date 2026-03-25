@@ -7,6 +7,7 @@ const userSchema = new Schema({
   phone: { type: String },
   position: { type: String },
   teams: [{ type: Types.ObjectId, ref: "Team" }],
+  managedTeams: [{ type: Types.ObjectId, ref: "Team" }],
 });
 
 export const User = models.User ?? model("User", userSchema);

@@ -28,6 +28,7 @@ export const authOptions: NextAuthOptions = {
             name: user.name,
             email: user.email,
             teams: (user.teams || []).map((team: unknown) => String(team)),
+            managedTeams: (user.managedTeams || []).map((team: unknown) => String(team)),
           };
         } catch (error) {
           console.error("Authorization error:", error);
@@ -41,6 +42,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.teams = user.teams;
+        token.managedTeams = user.managedTeams;
       }
       return token;
     },
@@ -48,6 +50,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id;
         session.user.teams = token.teams ?? [];
+        session.user.managedTeams = token.managedTeams ?? [];
       }
       return session;
     },
