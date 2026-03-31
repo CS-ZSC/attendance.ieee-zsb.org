@@ -7,6 +7,8 @@ export type AppUser = {
   name: string;
   email: string;
   teams: string[];
+  managedTracks: string[];
+  position?: string;
 };
 
 const COOKIE_NAME = process.env.NEXTAUTH_URL?.startsWith("https://")
@@ -31,9 +33,29 @@ export async function requireAuthenticatedUser(
     name: (token.name as string) ?? "",
     email: (token.email as string) ?? "",
     teams: (token.teams as string[]) ?? [],
+    managedTracks: (token.managedTracks as string[]) ?? [],
+    position: token.position as string,
   };
 }
 
 export function inTeam(user: AppUser, teamName: string) {
+  const isBoard = /board|internal board/i.test(user.position || "");
+  console.log("Checking inTeam:", {
+    userName: user.name,
+    position: user.position,
+    isBoard,
+    userTeams: user.teams,
+    targetTeam: teamName
+  });
+  if (isBoard) return true;
   return user.teams.includes(teamName);
+}
+
+export function isTnTMember(user: AppUser) {
+  return user.teams.includes("Talent & Tech (T&T)");
+}
+
+export function isTnTBoard(user: AppUser) {
+  const isBoard = /board|internal board|head|chair|director/i.test(user.position || "");
+  return isTnTMember(user) && isBoard;
 }

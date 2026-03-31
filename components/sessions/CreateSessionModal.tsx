@@ -27,12 +27,18 @@ export default function CreateSessionModal({
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ title: title.trim() }),
+      body: JSON.stringify({ title: title.trim(), track }),
     });
-    const newSession = await res.json();
+
+    if (res.ok) {
+      const data = await res.json();
+      onCreated(data);
+    } else {
+      const errorData = await res.json().catch(() => ({}));
+      console.error("Failed to create session:", res.status, errorData.error || errorData.message || "Unknown error");
+    }
 
     setLoading(false);
-    onCreated(newSession);
   };
 
   return (

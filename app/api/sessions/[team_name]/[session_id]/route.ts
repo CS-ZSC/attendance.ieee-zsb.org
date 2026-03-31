@@ -5,7 +5,7 @@ import { Team } from "@/models/Team";
 import { Session } from "@/models/Session";
 import { User } from "@/models/User";
 import { Attendance } from "@/models/Attendance";
-import { inTeam, requireAuthenticatedUser } from "@/lib/guard";
+import { inTeam, isTnTBoard, isTnTMember, requireAuthenticatedUser } from "@/lib/guard";
 
 const slugToTeamName: Record<string, string> = {
   ambassadors: "Ambassadors",
@@ -53,7 +53,13 @@ export async function GET(req: Request, { params }: Params) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
 
   const [members, records] = await Promise.all([
-    User.find({ teams: team._id }, "name email").lean(),
+    User.find(
+      {
+        teams: team._id,
+        position: { $nin: ["Internal Board", "Board", "internal board", "board", "Internal board"] },
+      },
+      "name email"
+    ).lean(),
     Attendance.find({ session_id: session._id }).lean(),
   ]);
 
@@ -61,7 +67,11 @@ export async function GET(req: Request, { params }: Params) {
     records.filter((r) => r.attended).map((r) => r.user_id.toString()),
   );
 
+  const isBoard = /board|internal board/i.test(auth.position || "");
+  const canEdit = isTnTBoard(auth) || isTnTMember(auth);
+
   return NextResponse.json({
+    canEdit,
     session: {
       id: session._id,
       title: session.title,
@@ -70,6 +80,7 @@ export async function GET(req: Request, { params }: Params) {
       created_at: new Date(session.created_at).toLocaleDateString("en-CA"),
     },
     users: members.map((u) => ({
+      id: u._id.toString(),
       name: u.name,
       email: u.email,
       attended: attendedSet.has(u._id.toString()),

@@ -23,6 +23,7 @@ type AuthUser = {
   email: string;
   teams: string[];
   managedTracks: string[];
+  position?: string;
 };
 
 export default function SessionsPage() {
@@ -66,8 +67,9 @@ export default function SessionsPage() {
     );
   }
 
-  const userTeams = user?.teams ?? [];
-  const hasAccess = userTeams.includes("Talent & Tech (T&T)");
+  const isBoard = /board|internal board/i.test(user?.position || "");
+  const hasAccess = isBoard || (user?.teams || []).includes("Talent & Tech (T&T)") || (user?.teams || []).includes(teamName);
+
   if (!hasAccess) {
     return (
       <div className="min-h-screen flex items-center justify-center">

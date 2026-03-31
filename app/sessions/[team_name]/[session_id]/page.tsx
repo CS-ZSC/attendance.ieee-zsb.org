@@ -67,7 +67,11 @@ export default function SessionDetailsPage() {
         <QRCodeDisplay sessionId={session.id} qrToken={session.qr_token} />
 
         {/* Attendance Table */}
-        <AttendanceTable members={users} />
+        <AttendanceTable
+          sessionId={sessionId}
+          members={users}
+          canEdit={data.canEdit}
+        />
       </div>
     </div>
   );

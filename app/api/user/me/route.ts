@@ -6,6 +6,18 @@ import { Session } from "@/models/Session";
 import { Attendance } from "@/models/Attendance";
 import { requireAuthenticatedUser } from "@/lib/guard";
 
+const teamNameToSlug: Record<string, string> = {
+  "Ambassadors": "ambassadors",
+  "Business Development (BD)": "business-development",
+  "CS (Computer Society)": "cs",
+  "Multimedia": "multimedia",
+  "Operations": "operations",
+  "PES (Power & Energy Society)": "pes",
+  "RAS (Robotics & Automation Society)": "ras",
+  "Talent & Tech (T&T)": "talent-and-tech",
+  "WIE (Women in Engineering)": "wie",
+};
+
 // GET /api/user/me — get current user details with teams, sessions, and attendance status
 export async function GET(req: Request) {
   const auth = await requireAuthenticatedUser(req);
@@ -59,6 +71,7 @@ export async function GET(req: Request) {
       id: s._id,
       title: s.title,
       team: s.team_id?.name ?? "Unknown",
+      team_slug: s.team_id?.name ? (teamNameToSlug[s.team_id.name] || "unknown") : "unknown",
       created_by: s.created_by?.name ?? "Unknown",
       created_at: new Date(s.created_at).toLocaleDateString("en-CA"),
       attended: attendance?.attended ?? false,

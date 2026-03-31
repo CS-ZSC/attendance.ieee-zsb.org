@@ -1,9 +1,22 @@
 "use client";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
 export default function HomePage() {
   const router = useRouter();
+  const [loadingAuth, setLoadingAuth] = useState(true);
+  const [isLogged, setIsLogged] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/auth/session", { credentials: "include" })
+      .then((res) => res.json())
+      .then((data) => {
+        setIsLogged(!!(data && data.user));
+      })
+      .catch(() => setIsLogged(false))
+      .finally(() => setLoadingAuth(false));
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center px-8 md:px-4 overflow-hidden">
@@ -25,12 +38,25 @@ export default function HomePage() {
             Track and manage session attendance for IEEE ZSB teams with ease.
           </p>
 
-          <button
-            onClick={() => router.push("/login")}
-            className="bg-brand-primary hover:bg-brand-primary-hover text-white px-8 py-3 rounded-lg text-sm font-semibold tracking-wide transition-colors cursor-pointer"
-          >
-            Login
-          </button>
+          {loadingAuth ? (
+            <div className="px-8 py-3">
+              <div className="w-5 h-5 border-2 border-brand-muted border-t-white rounded-full animate-spin"></div>
+            </div>
+          ) : isLogged ? (
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="bg-brand-primary hover:bg-brand-primary-hover text-white px-8 py-3 max-w-xs rounded-lg text-sm font-semibold tracking-wide transition-colors cursor-pointer flex justify-center"
+            >
+              Go to Dashboard
+            </button>
+          ) : (
+            <button
+              onClick={() => router.push("/login")}
+              className="bg-brand-primary hover:bg-brand-primary-hover text-white px-8 py-3 max-w-xs rounded-lg text-sm font-semibold tracking-wide transition-colors cursor-pointer flex justify-center"
+            >
+              Login
+            </button>
+          )}
         </div>
 
         {/* Right - Logo */}

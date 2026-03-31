@@ -1,8 +1,11 @@
 export type Session = {
   id: string;
   title: string;
+  team: string;
+  team_slug?: string;
   created_at: string;
   created_by?: string;
+  attended?: boolean;
 };
 
 export type SessionDetails = {
@@ -14,12 +17,14 @@ export type SessionDetails = {
 };
 
 export type Member = {
+  id: string;
   name: string;
   email: string;
   attended: boolean;
 };
 
 export type SessionDetailsResponse = {
+  canEdit?: boolean;
   session: SessionDetails;
   users: Member[];
 };

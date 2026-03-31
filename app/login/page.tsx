@@ -39,14 +39,7 @@ export default function LoginPage() {
       setError("Invalid email or national ID");
     } else {
       const teams: string[] = data.user.teams ?? [];
-      const firstTeam = teams[0];
-      const slug = teamSlugs[firstTeam];
-
-      if (slug) {
-        router.push(`/sessions/${slug}`);
-      } else {
-        router.push("/");
-      }
+      router.push("/dashboard");
     }
   };
 

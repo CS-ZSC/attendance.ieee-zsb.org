@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { Team } from "@/models/Team";
+import { User } from "@/models/User";
 import { requireAuthenticatedUser } from "@/lib/guard";
 
 // Team categories mapping
@@ -36,7 +37,26 @@ export async function GET(req: Request) {
 
   await connectDB();
 
-  const teams = await Team.find().lean();
+  const user = await User.findById(auth.id)
+    .select("teams managedTracks position")
+    .populate("teams", "name")
+    .lean();
+
+  const isTnTBoard =
+    user?.teams?.some((t: any) => t.name === "Talent & Tech (T&T)") &&
+    /board|head|chair|director/i.test(user?.position || "");
+
+  const allowedTeamIds = [
+    ...(user?.teams?.map((t: any) => t._id) || []),
+    ...(user?.managedTracks || []),
+  ];
+
+  let teams: any[] = [];
+  if (isTnTBoard) {
+    teams = await Team.find().lean();
+  } else if (allowedTeamIds.length > 0) {
+    teams = await Team.find({ _id: { $in: allowedTeamIds } }).lean();
+  }
 
   const chapters: { id: unknown; name: string; slug: string }[] = [];
   const committees: { id: unknown; name: string; slug: string }[] = [];

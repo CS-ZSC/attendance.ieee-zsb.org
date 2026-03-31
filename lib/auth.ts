@@ -34,6 +34,7 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             teams: (user.teams || []).map((team: any) => team?.name || String(team)),
             managedTracks: (user.managedTracks || []).map((m: any) => m?.name || String(m)),
+            position: user.position,
           };
         } catch (error) {
           console.error("Authorization error:", error);
@@ -48,6 +49,7 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.teams = user.teams;
         token.managedTracks = user.managedTracks;
+        token.position = user.position;
       }
       return token;
     },
@@ -56,6 +58,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id;
         session.user.teams = token.teams ?? [];
         session.user.managedTracks = token.managedTracks ?? [];
+        session.user.position = token.position;
       }
       return session;
     },
